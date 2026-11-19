@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="es" class="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Noticias | Terminal Económica y Política</title>
+  <!-- Tailwind CSS via CDN para utilidades de diseño responsivo y limpio -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter y JetBrains Mono para estética de terminal financiera -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            navy: {
+              950: '#040b16',
+              900: '#0a192f',
+              800: '#112240',
+              700: '#1d3557',
+            },
+            teal: {
+              400: '#2dd4bf',
+              500: '#14b8a6',
+              600: '#0d9488',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Estilos personalizados para scrollbar y transiciones suaves de terminal */
+    body {
+      font-family: 'Inter', sans-serif;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+    .font-mono-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-variant-numeric: tabular-nums;
+    }
+    /* Scrollbar institucional */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.3);
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(20, 184, 166, 0.6);
+    }
+    /* Animación sutil para botón refresh */
+    @keyframes spin-once {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .animate-spin-once {
+      animation: spin-once 0.6s ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-navy-950 dark:text-slate-100 antialiased selection:bg-teal-500 selection:text-white">
+
+  <!-- Contenedor Principal Flex -->
+  <div class="flex min-h-screen overflow-x-hidden">
+
+    <!-- Overlay móvil para cerrar menú lateral -->
+    <div id="sidebar-overlay" class="fixed inset-0 z-20 bg-navy-950/60 backdrop-blur-sm hidden lg:hidden transition-opacity"></div>
+
+    <!-- Menú Lateral (Sidebar) -->
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-30 w-64 transform -translate-x-full lg:translate-x-0 lg:static lg:inset-0 bg-navy-900 text-slate-200 flex flex-col border-r border-navy-800 transition-transform duration-200 ease-in-out shrink-0">
+      
+      <!-- Logo Institucional -->
+      <div class="h-16 flex items-center justify-between px-5 border-b border-navy-800 bg-navy-950/50">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center text-navy-950 font-bold shadow-md shadow-teal-500/20">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+            </svg>
+          </div>
+          <div>
+            <span class="font-bold tracking-tight text-white block leading-none">DASHBOARD</span>
+            <span class="text-[11px] font-mono tracking-widest text-teal-400 uppercase">Noticias Terminal</span>
+          </div>
+        </div>
+        <button id="close-sidebar-btn" class="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-navy-800" aria-label="Cerrar menú">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Navegación por Secciones / Categorías -->
+      <div class="flex-1 overflow-y-auto py-5 px-3 space-y-6">
+        <div>
+          <p class="px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-2">Secciones Informativas</p>
+          <nav class="space-y-1" id="sidebar-nav">
+            <button data-category="ALL" class="nav-item w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg bg-teal-500/15 text-teal-400 border border-teal-500/30 transition-colors">
+              <span class="flex items-center gap-2.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                <span>Panorama General</span>
+              </span>
+              <span id="badge-ALL" class="text-xs font-mono-num px-2 py-0.5 rounded-full bg-navy-800 text-slate-300">0</span>
+            </button>
+
+            <button data-category="México" class="nav-item w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg text-slate-300 hover:bg-navy-800 hover:text-white border border-transparent transition-colors">
+              <span class="flex items-center gap-2.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                <span>México</span>
+              </span>
+              <span id="badge-México" class="text-xs font-mono-num px-2 py-0.5 rounded-full bg-navy-800 text-slate-400">0</span>
+            </button>
+
+            <button data-category="Estados Unidos" class="nav-item w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg text-slate-300 hover:bg-navy-800 hover:text-white border border-transparent transition-colors">
+              <span class="flex items-center gap-2.5">
+                <span class="w-2 h-2 rounded-full bg-sky-400"></span>
+                <span>Estados Unidos</span>
+              </span>
+              <span id="badge-Estados Unidos" class="text-xs font-mono-num px-2 py-0.5 rounded-full bg-navy-800 text-slate-400">0</span>
+            </button>
+
+            <button data-category="Mercados" class="nav-item w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg text-slate-300 hover:bg-navy-800 hover:text-white border border-transparent transition-colors">
+              <span class="flex items-center gap-2.5">
+                <span class="w-2 h-2 rounded-full bg-teal-400"></span>
+                <span>Mercados</span>
+              </span>
+              <span id="badge-Mercados" class="text-xs font-mono-num px-2 py-0.5 rounded-full bg-navy-800 text-slate-400">0</span>
+            </button>
+
+            <button data-category="Política" class="nav-item w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg text-slate-300 hover:bg-navy-800 hover:text-white border border-transparent transition-colors">
+              <span class="flex items-center gap-2.5">
+                <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                <span>Política</span>
+              </span>
+              <span id="badge-Política" class="text-xs font-mono-num px-2 py-0.5 rounded-full bg-navy-800 text-slate-400">0</span>
+            </button>
+          </nav>
+        </div>
+
+        <!-- Información Operativa de Actualización (Contrato) -->
+        <div class="px-3">
+          <div class="p-3.5 rounded-xl bg-navy-800/80 border border-navy-700/70 space-y-2">
+            <div class="flex items-center gap-2 text-teal-400 text-xs font-semibold">
+              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span>Actualización de Datos</span>
+            </div>
+            <p class="text-[11px] leading-relaxed text-slate-300">
+              El botón <strong>Refresh</strong> relee el archivo local <code class="text-teal-300 font-mono">noticias.json</code>.
+            </p>
+            <p class="text-[11px] leading-relaxed text-slate-400 border-t border-navy-700 pt-2">
+              Para ingestar noticias nuevas ejecuta en GitHub:<br>
+              <span class="text-slate-200 font-medium">Actions &gt; Actualizar noticias y publicar dashboard &gt; Run workflow</span>.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pie de Sidebar: Estado del Feed -->
+      <div class="p-4 border-t border-navy-800 bg-navy-950/40 text-xs">
+        <div class="flex items-center justify-between">
+          <span class="text-slate-400">Estado del Feed:</span>
+          <span id="sidebar-status-pill" class="px-2 py-0.5 rounded font-mono uppercase text-[10px] font-semibold bg-slate-700 text-slate-200">CARGANDO</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Área Principal de Contenido -->
+    <div class="flex-1 flex flex-col min-w-0">
+      
+      <!-- Barra Superior (Top Header) -->
+      <header class="sticky top-0 z-10 bg-white/90 dark:bg-navy-900/90 backdrop-blur-md border-b border-slate-200 dark:border-navy-800 px-4 sm:px-6 py-3">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+          
+          <!-- Izquierda: Botón menú móvil + Título y Última Recopilación -->
+          <div class="flex items-center gap-3">
+            <button id="open-sidebar-btn" class="lg:hidden p-2 rounded-lg border border-slate-200 dark:border-navy-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-navy-800" aria-label="Abrir menú">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+            <div>
+              <div class="flex items-center gap-2">
+                <h1 class="text-lg sm:text-xl font-bold text-navy-900 dark:text-white tracking-tight">Dashboard Noticias</h1>
+                <span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-teal-500/10 text-teal-700 dark:text-teal-400 border border-teal-500/20">
+                  Terminal Institucional
+                </span>
+              </div>
+              <div class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                <svg class="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span>Última recopilación:</span>
+                <time id="last-collected-display" class="font-mono-num font-medium text-slate-700 dark:text-slate-200">Sin fecha registrada</time>
+              </div>
+            </div>
+          </div>
+
+          <!-- Derecha: Controles de Acción (Exportar CSV, Refresh, Tema Claro/Oscuro) -->
+          <div class="flex items-center gap-2 sm:gap-2.5">
+            <!-- Botón Exportar CSV -->
+            <button id="btn-export-csv" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-medium border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-navy-700 transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed" title="Exportar vista filtrada a CSV">
+              <svg class="w-4 h-4 text-teal-600 dark:text-teal-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+              <span class="hidden sm:inline">Exportar CSV</span>
+              <span class="sm:hidden">CSV</span>
+            </button>
+
+            <!-- Botón Refresh (ÚNICAMENTE vuelve a pedir noticias.json) -->
+            <button id="btn-refresh" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-navy-900 hover:bg-navy-800 dark:bg-teal-600 dark:hover:bg-teal-500 text-white transition-colors shadow-sm" title="Volver a leer ./noticias.json">
+              <svg id="refresh-icon" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+              <span>Refresh</span>
+            </button>
+
+            <!-- Botón Alternar Tema Claro / Oscuro -->
+            <button id="btn-theme-toggle" class="p-2 rounded-lg border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-navy-700 transition-colors" aria-label="Cambiar tema claro u oscuro" title="Alternar modo claro/oscuro">
+              <!-- Icono Sol (visible en modo oscuro) -->
+              <svg id="icon-sun" class="w-4 h-4 hidden dark:block text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"/></svg>
+              <!-- Icono Luna (visible en modo claro) -->
+              <svg id="icon-moon" class="w-4 h-4 block dark:hidden text-navy-900" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"/></svg>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Cuerpo Principal -->
+      <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
+
+        <!-- Notificación Toast Temporal (Feedback no intrusivo) -->
+        <div id="toast-banner" class="hidden rounded-xl px-4 py-3 text-sm font-medium border flex items-center justify-between shadow-sm transition-all">
+          <div class="flex items-center gap-2.5">
+            <span id="toast-icon"></span>
+            <span id="toast-message"></span>
+          </div>
+          <button id="toast-close" class="text-xs opacity-70 hover:opacity-100 px-2 py-1">Cerrar</button>
+        </div>
+
+        <!-- Banner de Avisos de Estado (partial / error / pending) -->
+        <section id="status-alert-box" class="hidden rounded-xl border p-4 shadow-sm" aria-live="polite">
+          <div class="flex items-start gap-3">
+            <div id="status-alert-icon" class="mt-0.5 shrink-0"></div>
+            <div class="flex-1 min-w-0">
+              <h2 id="status-alert-title" class="text-sm font-bold"></h2>
+              <p id="status-alert-desc" class="text-xs sm:text-sm mt-1 opacity-90"></p>
+              <ul id="status-errors-list" class="mt-2.5 space-y-1 text-xs font-mono bg-black/5 dark:bg-black/25 rounded-lg p-2.5 hidden max-h-36 overflow-y-auto"></ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- Tarjetas de Indicadores Calculados con Datos Reales -->
+        <section aria-label="Indicadores clave de recopilación">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            
+            <!-- KPI 1: Total de Artículos -->
+            <div class="bg-white dark:bg-navy-900 rounded-xl p-4 sm:p-5 border border-slate-200 dark:border-navy-800 shadow-sm flex flex-col justify-between">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Artículos en Archivo</span>
+                <span class="p-2 rounded-lg bg-navy-900/5 dark:bg-teal-500/10 text-navy-900 dark:text-teal-400">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
+                </span>
+              </div>
+              <div class="mt-3 flex items-baseline justify-between">
+                <p id="kpi-total-articles" class="text-2xl sm:text-3xl font-bold font-mono-num text-navy-900 dark:text-white">0</p>
+                <span id="kpi-filtered-sub" class="text-xs text-slate-500 dark:text-slate-400 font-mono-num">0 visibles</span>
+              </div>
+            </div>
+
+            <!-- KPI 2: Artículos Nuevos (new_articles) -->
+            <div class="bg-white dark:bg-navy-900 rounded-xl p-4 sm:p-5 border border-slate-200 dark:border-navy-800 shadow-sm flex flex-col justify-between">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Nuevos en Ejecución</span>
+                <span class="p-2 rounded-lg bg-teal-500/10 text-teal-600 dark:text-teal-400">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                </span>
+              </div>
+              <div class="mt-3 flex items-baseline justify-between">
+                <p id="kpi-new-articles" class="text-2xl sm:text-3xl font-bold font-mono-num text-teal-600 dark:text-teal-400">0</p>
+                <span class="text-xs text-slate-500 dark:text-slate-400">Último ciclo</span>
+              </div>
+            </div>
+
+            <!-- KPI 3: Cobertura de Fuentes (sources_ok / sources_total) -->
+            <div class="bg-white dark:bg-navy-900 rounded-xl p-4 sm:p-5 border border-slate-200 dark:border-navy-800 shadow-sm flex flex-col justify-between">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Fuentes Operativas</span>
+                <span class="p-2 rounded-lg bg-sky-500/10 text-sky-600 dark:text-sky-400">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </span>
+              </div>
+              <div class="mt-3 flex items-baseline justify-between">
+                <p id="kpi-sources-ratio" class="text-2xl sm:text-3xl font-bold font-mono-num text-navy-900 dark:text-white">0 / 0</p>
+                <span id="kpi-sources-pct" class="text-xs font-mono-num font-semibold text-slate-500 dark:text-slate-400">0%</span>
+              </div>
+            </div>
+
+            <!-- KPI 4: Medios Activos con Noticias -->
+            <div class="bg-white dark:bg-navy-900 rounded-xl p-4 sm:p-5 border border-slate-200 dark:border-navy-800 shadow-sm flex flex-col justify-between">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Medios Representados</span>
+                <span class="p-2 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418"/></svg>
+                </span>
+              </div>
+              <div class="mt-3 flex items-baseline justify-between">
+                <p id="kpi-unique-sources" class="text-2xl sm:text-3xl font-bold font-mono-num text-navy-900 dark:text-white">0</p>
+                <span class="text-xs text-slate-500 dark:text-slate-400">Fuentes distintas</span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- Panel de Analítica Visual: Distribución Temática y Top Fuentes (SVG + HTML/CSS puro) -->
+        <section id="analytics-section" class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          
+          <!-- Gráfica SVG: Distribución por Categoría -->
+          <div class="lg:col-span-7 bg-white dark:bg-navy-900 rounded-xl p-5 border border-slate-200 dark:border-navy-800 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h2 class="text-sm font-bold text-navy-900 dark:text-white">Distribución Temática</h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Proporción real por sección informativa en archivo</p>
+              </div>
+              <span class="text-xs font-mono px-2.5 py-1 rounded-md bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-300">SVG Analytics</span>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-center gap-6">
+              <!-- Anillo SVG Dinámico -->
+              <div class="relative w-40 h-40 shrink-0 flex items-center justify-center">
+                <svg id="category-donut-svg" viewBox="0 0 120 120" class="w-full h-full -rotate-90 transform">
+                  <circle cx="60" cy="60" r="46" fill="transparent" stroke="currentColor" stroke-width="14" class="text-slate-100 dark:text-navy-800" />
+                  <g id="donut-segments"></g>
+                </svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
+                  <span id="donut-center-count" class="text-xl font-bold font-mono-num text-navy-900 dark:text-white">0</span>
+                  <span class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">Total</span>
+                </div>
+              </div>
+
+              <!-- Leyenda y Barras de Progreso -->
+              <div id="category-bars-container" class="flex-1 w-full space-y-3">
+                <!-- Se llena dinámicamente con JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Gráfica HTML/CSS: Volumen por Fuente Informativa -->
+          <div class="lg:col-span-5 bg-white dark:bg-navy-900 rounded-xl p-5 border border-slate-200 dark:border-navy-800 shadow-sm flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <h2 class="text-sm font-bold text-navy-900 dark:text-white">Concentración por Fuente</h2>
+                  <p class="text-xs text-slate-500 dark:text-slate-400">Principales medios según volumen recopilado</p>
+                </div>
+              </div>
+              <div id="sources-chart-container" class="space-y-3">
+                <!-- Barras horizontales HTML/CSS -->
+              </div>
+            </div>
+            <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-4 pt-3 border-t border-slate-100 dark:border-navy-800">
+              Cálculo generado exclusivamente a partir de los registros presentes en <code class="font-mono">noticias.json</code>.
+            </p>
+          </div>
+
+        </section>
+
+        <!-- Barra de Búsqueda y Filtros Avanzados -->
+        <section aria-label="Filtros y búsqueda de titulares" class="bg-white dark:bg-navy-900 rounded-xl p-4 border border-slate-200 dark:border-navy-800 shadow-sm">
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+            
+            <!-- Buscador por palabra clave -->
+            <div class="md:col-span-4">
+              <label for="filter-search" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">Buscar titular o palabra clave</label>
+              <div class="relative">
+                <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+                <input type="text" id="filter-search" placeholder="Ej. inflación, Banxico, Fed, PIB..." class="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-navy-700 bg-slate-50 dark:bg-navy-950 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-shadow">
+              </div>
+            </div>
+
+            <!-- Filtro por Categoría -->
+            <div class="sm:col-span-4 md:col-span-2">
+              <label for="filter-category" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">Categoría</label>
+              <select id="filter-category" class="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-navy-700 bg-slate-50 dark:bg-navy-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500">
+                <option value="ALL">Todas las secciones</option>
+                <option value="México">México</option>
+                <option value="Estados Unidos">Estados Unidos</option>
+                <option value="Mercados">Mercados</option>
+                <option value="Política">Política</option>
+              </select>
+            </div>
+
+            <!-- Filtro por Fuente -->
+            <div class="sm:col-span-4 md:col-span-3">
+              <label for="filter-source" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">Fuente / Medio</label>
+              <select id="filter-source" class="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-navy-700 bg-slate-50 dark:bg-navy-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500">
+                <option value="ALL">Todas las fuentes</option>
+              </select>
+            </div>
+
+            <!-- Filtro por Fecha -->
+            <div class="sm:col-span-4 md:col-span-2">
+              <label for="filter-date" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">Fecha publicación</label>
+              <input type="date" id="filter-date" class="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-navy-700 bg-slate-50 dark:bg-navy-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500">
+            </div>
+
+            <!-- Botón Limpiar Filtros -->
+            <div class="md:col-span-1 flex justify-end">
+              <button id="btn-clear-filters" class="w-full md:w-auto px-3 py-2 text-xs font-semibold rounded-lg border border-slate-300 dark:border-navy-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-navy-800 transition-colors" title="Restablecer todos los filtros">
+                Limpiar
+              </button>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- Encabezado de Resultados -->
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <h2 id="feed-heading" class="text-base font-bold text-navy-900 dark:text-white">Titulares Recopilados</h2>
+            <span id="results-counter-badge" class="px-2.5 py-0.5 text-xs font-mono-num font-semibold rounded-full bg-teal-500/15 text-teal-700 dark:text-teal-300">0</span>
+          </div>
+          <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+            <span>Orden: Más recientes primero</span>
+          </div>
+        </div>
+
+        <!-- Estado Vacío (Cuando articles está vacío o no hay coincidencias) -->
+        <section id="empty-state-container" class="hidden bg-white dark:bg-navy-900 rounded-2xl border border-dashed border-slate-300 dark:border-navy-700 p-8 sm:p-12 text-center max-w-2xl mx-auto">
+          <div class="w-14 h-14 rounded-2xl bg-navy-900/5 dark:bg-teal-500/10 text-navy-900 dark:text-teal-400 flex items-center justify-center mx-auto mb-4">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V18a2.25 2.25 0 002.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5M6 7.5h3v3H6v-3z"/></svg>
+          </div>
+          <h3 id="empty-state-title" class="text-lg font-bold text-navy-900 dark:text-white">Aún no han sido recopiladas las noticias</h3>
+          <p id="empty-state-desc" class="text-sm text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
+            El archivo <code class="font-mono text-xs px-1.5 py-0.5 rounded bg-slate-100 dark:bg-navy-800 text-teal-700 dark:text-teal-300">noticias.json</code> no contiene artículos disponibles en este momento.
+          </p>
+          
+          <!-- Instrucciones explícitas según CONTRATO_HTML.txt -->
+          <div id="empty-state-instructions" class="mt-6 text-left bg-slate-50 dark:bg-navy-950 border border-slate-200 dark:border-navy-800 rounded-xl p-4 space-y-2.5">
+            <p class="text-xs font-bold uppercase tracking-wider text-navy-900 dark:text-teal-400">Cómo recopilar noticias nuevas:</p>
+            <ol class="text-xs sm:text-sm text-slate-700 dark:text-slate-300 space-y-1.5 list-decimal list-inside">
+              <li>Abre el repositorio del proyecto en <strong>GitHub</strong>.</li>
+              <li>Dirígete a la pestaña <strong>Actions</strong>.</li>
+              <li>Selecciona el flujo <strong>Actualizar noticias y publicar dashboard</strong>.</li>
+              <li>Haz clic en <strong>Run workflow</strong> y confirma con <strong>Run workflow</strong>.</li>
+              <li>Una vez finalizado el despliegue, presiona <strong>Refresh</strong> en este panel.</li>
+            </ol>
+          </div>
+
+          <div class="mt-6">
+            <button id="btn-empty-reset" class="hidden px-4 py-2 rounded-lg text-sm font-semibold bg-teal-600 hover:bg-teal-500 text-white transition-colors">
+              Limpiar filtros activos
+            </button>
+          </div>
+        </section>
+
+        <!-- Cuadrícula de Tarjetas de Titulares -->
+        <section id="articles-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" aria-live="polite">
+          <!-- Las tarjetas se renderizan de forma segura usando DOM y textContent -->
+        </section>
+
+      </main>
+
+      <!-- Footer Institucional -->
+      <footer class="border-t border-slate-200 dark:border-navy-800 bg-white dark:bg-navy-900/60 px-4 sm:px-6 py-4 mt-8">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
+          <p>Dashboard Noticias &bull; Visualizador estático conectado a <code class="font-mono text-slate-700 dark:text-slate-300">./noticias.json</code></p>
+          <p>Sin datos simulados &bull; Renderizado seguro XSS-free</p>
+        </div>
+      </footer>
+
+    </div>
+  </div>
+
+  <script>
+    /**
+     * Lógica del Dashboard Noticias
+     * Cumple estrictamente con CONTRATO_HTML.txt:
+     * - Lectura exclusiva desde ./noticias.json?t=Date.now() con cache: 'no-store'
+     * - Uso estricto de textContent para títulos, fuentes y textos externos
+     * - Botón Refresh solo vuelve a consultar ./noticias.json
+     * - Sin datos ficticios ni cotizaciones inventadas
+     */
+    (function () {
+      'use strict';
+
+      // Estado global de la aplicación
+      const state = {
+        rawPayload: {
+          generated_at: null,
+          status: 'pending',
+          sources_ok: 0,
+          sources_total: 0,
+          new_articles: 0,
+          errors: [],
+          articles: []
+        },
+        filteredArticles: [],
+        filters: {
+          category: 'ALL',
+          source: 'ALL',
+          date: '',
+          search: ''
+        }
+      };
+
+      // Paleta institucional por categoría para etiquetas y gráficas SVG
+      const CATEGORY_META = {
+        'México': { color: '#10b981', badgeClass: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20' },
+        'Estados Unidos': { color: '#0ea5e9', badgeClass: 'bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-500/20' },
+        'Mercados': { color: '#14b8a6', badgeClass: 'bg-teal-500/10 text-teal-700 dark:text-teal-300 border-teal-500/20' },
+        'Política': { color: '#f59e0b', badgeClass: 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20' },
+        'Otras': { color: '#64748b', badgeClass: 'bg-slate-500/10 text-slate-700 dark:text-slate-300 border-slate-500/20' }
+      };
+
+      // Referencias DOM
+      const dom = {
+        html: document.documentElement,
+        sidebar: document.getElementById('sidebar'),
+        sidebarOverlay: document.getElementById('sidebar-overlay'),
+        openSidebarBtn: document.getElementById('open-sidebar-btn'),
+        closeSidebarBtn: document.getElementById('close-sidebar-btn'),
+        navItems: document.querySelectorAll('.nav-item'),
+        btnRefresh: document.getElementById('btn-refresh'),
+        refreshIcon: document.getElementById('refresh-icon'),
+        btnExportCsv: document.getElementById('btn-export-csv'),
+        btnThemeToggle: document.getElementById('btn-theme-toggle'),
+        lastCollectedDisplay: document.getElementById('last-collected-display'),
+        sidebarStatusPill: document.getElementById('sidebar-status-pill'),
+        
+        // Avisos y Toast
+        toastBanner: document.getElementById('toast-banner'),
+        toastMessage: document.getElementById('toast-message'),
+        toastClose: document.getElementById('toast-close'),
+        statusAlertBox: document.getElementById('status-alert-box'),
+        statusAlertIcon: document.getElementById('status-alert-icon'),
+        statusAlertTitle: document.getElementById('status-alert-title'),
+        statusAlertDesc: document.getElementById('status-alert-desc'),
+        statusErrorsList: document.getElementById('status-errors-list'),
+
+        // KPIs
+        kpiTotalArticles: document.getElementById('kpi-total-articles'),
+        kpiFilteredSub: document.getElementById('kpi-filtered-sub'),
+        kpiNewArticles: document.getElementById('kpi-new-articles'),
+        kpiSourcesRatio: document.getElementById('kpi-sources-ratio'),
+        kpiSourcesPct: document.getElementById('kpi-sources-pct'),
+        kpiUniqueSources: document.getElementById('kpi-unique-sources'),
+
+        // Gráficas
+        donutSegments: document.getElementById('donut-segments'),
+        donutCenterCount: document.getElementById('donut-center-count'),
+        categoryBarsContainer: document.getElementById('category-bars-container'),
+        sourcesChartContainer: document.getElementById('sources-chart-container'),
+
+        // Filtros
+        filterSearch: document.getElementById('filter-search'),
+        filterCategory: document.getElementById('filter-category'),
+        filterSource: document.getElementById('filter-source'),
+        filterDate: document.getElementById('filter-date'),
+        btnClearFilters: document.getElementById('btn-clear-filters'),
+
+        // Feed y Estado Vacío
+        feedHeading: document.getElementById('feed-heading'),
+        resultsCounterBadge: document.getElementById('results-counter-badge'),
+        articlesGrid: document.getElementById('articles-grid'),
+        emptyStateContainer: document.getElementById('empty-state-container'),
+        emptyStateTitle: document.getElementById('empty-state-title'),
+        emptyStateDesc: document.getElementById('empty-state-desc'),
+        emptyStateInstructions: document.getElementById('empty-state-instructions'),
+        btnEmptyReset: document.getElementById('btn-empty-reset')
+      };
+
+      /**
+       * Inicialización de Tema Claro / Oscuro
+       */
+      function initTheme() {
+        const savedTheme = localStorage.getItem('dashboard_noticias_theme');
+        if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          dom.html.classList.add('dark');
+        } else {
+          dom.html.classList.remove('dark');
+        }
+      }
+
+      function toggleTheme() {
+        const isDark = dom.html.classList.toggle('dark');
+        localStorage.setItem('dashboard_noticias_theme', isDark ? 'dark' : 'light');
+      }
+
+      /**
+       * Control de Sidebar Responsivo (Móvil / Tablet)
+       */
+      function openSidebar() {
+        dom.sidebar.classList.remove('-translate-x-full');
+        dom.sidebarOverlay.classList.remove('hidden');
+      }
+
+      function closeSidebar() {
+        dom.sidebar.classList.add('-translate-x-full');
+        dom.sidebarOverlay.classList.add('hidden');
+      }
+
+      /**
+       * Mostrar notificación temporal (Toast) sin usar alert()
+       */
+      let toastTimeout = null;
+      function showToast(message, type = 'info') {
+        if (toastTimeout) clearTimeout(toastTimeout);
+        
+        dom.toastBanner.className = 'rounded-xl px-4 py-3 text-sm font-medium border flex items-center justify-between shadow-sm transition-all ';
+        if (type === 'success') {
+          dom.toastBanner.className += 'bg-teal-50 dark:bg-teal-950/60 border-teal-200 dark:border-teal-800 text-teal-900 dark:text-teal-200';
+        } else if (type === 'error') {
+          dom.toastBanner.className += 'bg-rose-50 dark:bg-rose-950/60 border-rose-200 dark:border-rose-800 text-rose-900 dark:text-rose-200';
+        } else {
+          dom.toastBanner.className += 'bg-slate-100 dark:bg-navy-800 border-slate-200 dark:border-navy-700 text-slate-800 dark:text-slate-200';
+        }
+
+        dom.toastMessage.textContent = message;
+        dom.toastBanner.classList.remove('hidden');
+
+        toastTimeout = setTimeout(() => {
+          dom.toastBanner.classList.add('hidden');
+        }, 4500);
+      }
+
+      /**
+       * Formateo seguro de fechas ISO
+       */
+      function formatDateTime(isoString) {
+        if (!isoString) return 'No disponible';
+        try {
+          const date = new Date(isoString);
+          if (isNaN(date.getTime())) return isoString;
+          return new Intl.DateTimeFormat('es-MX', {
+            year: 'numeric',
+            month: 'short',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+          }).format(date);
+        } catch (e) {
+          return String(isoString);
+        }
+      }
+
+      /**
+       * Extraer YYYY-MM-DD en zona horaria local para filtro por fecha
+       */
+      function getLocalDateKey(isoString) {
+        if (!isoString) return '';
+        try {
+          const d = new Date(isoString);
+          if (isNaN(d.getTime())) return '';
+          const year = d.getFullYear();
+          const month = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        } catch (e) {
+          return '';
+        }
+      }
+
+      /**
+       * Sanitización de URL para enlaces externos (solo http/https)
+       */
+      function getSafeUrl(rawUrl) {
+        if (!rawUrl || typeof rawUrl !== 'string') return '#';
+        const trimmed = rawUrl.trim();
+        if (trimmed.startsWith('https://') || trimmed.startsWith('http://')) {
+          return trimmed;
+        }
+        return '#';
+      }
+
+      /**
+       * Consulta obligatoria de ./noticias.json según CONTRATO_HTML.txt
+       */
+      async function fetchNewsData(isManualRefresh = false) {
+        if (isManualRefresh) {
+          dom.refreshIcon.classList.add('animate-spin-once');
+          dom.btnRefresh.disabled = true;
+        }
+
+        try {
+          const response = await fetch('./noticias.json?t=' + Date.now(), {
+            cache: 'no-store'
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: No se pudo leer noticias.json`);
+          }
+
+          const data = await response.json();
+
+          // Normalización estricta de propiedades esperadas del contrato
+          state.rawPayload = {
+            generated_at: data.generated_at || null,
+            status: data.status || 'pending',
+            sources_ok: Number.isFinite(data.sources_ok) ? data.sources_ok : 0,
+            sources_total: Number.isFinite(data.sources_total) ? data.sources_total : 0,
+            new_articles: Number.isFinite(data.new_articles) ? data.new_articles : 0,
+            errors: Array.isArray(data.errors) ? data.errors : [],
+            articles: Array.isArray(data.articles) ? data.articles : []
+          };
+
+          // Ordenar artículos del más reciente al más antiguo
+          state.rawPayload.articles.sort((a, b) => {
+            const dateA = a.published_at || a.collected_at || '';
+            const dateB = b.published_at || b.collected_at || '';
+            return dateB.localeCompare(dateA);
+          });
+
+          populateSourceDropdown();
+          renderMetadataAndAlerts();
+          renderKPIs();
+          renderAnalytics();
+          applyFilters();
+
+          if (isManualRefresh) {
+            showToast(`Archivo noticias.json actualizado (${state.rawPayload.articles.length} artículos en registro).`, 'success');
+          }
+        } catch (error) {
+          console.error('Error al cargar noticias.json:', error);
+          state.rawPayload.status = 'error';
+          state.rawPayload.errors = [
+            error.message || 'Error de red o formato JSON inválido al consultar ./noticias.json'
+          ];
+          renderMetadataAndAlerts();
+          renderKPIs();
+          renderAnalytics();
+          applyFilters();
+
+          if (isManualRefresh) {
+            showToast('No se pudo leer ./noticias.json. Verifica que el archivo exista.', 'error');
+          }
+        } finally {
+          if (isManualRefresh) {
+            setTimeout(() => {
+              dom.refreshIcon.classList.remove('animate-spin-once');
+              dom.btnRefresh.disabled = false;
+            }, 400);
+          }
+        }
+      }
+
+      /**
+       * Renderiza fecha generated_at, estado del sidebar y banners de aviso (partial / error)
+       */
+      function renderMetadataAndAlerts() {
+        const { generated_at, status, sources_ok, sources_total, errors } = state.rawPayload;
+
+        // Fecha de última recopilación
+        dom.lastCollectedDisplay.textContent = generated_at
+          ? formatDateTime(generated_at)
+          : 'Pendiente de primera ejecución';
+
+        // Etiqueta de estado en Sidebar
+        const statusMap = {
+          ok: { label: 'OK', cls: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' },
+          partial: { label: 'PARCIAL', cls: 'bg-amber-500/20 text-amber-300 border border-amber-500/30' },
+          error: { label: 'ERROR', cls: 'bg-rose-500/20 text-rose-300 border border-rose-500/30' },
+          pending: { label: 'PENDIENTE', cls: 'bg-slate-700 text-slate-300 border border-slate-600' }
+        };
+        const currentStatus = statusMap[status] || statusMap.pending;
+        dom.sidebarStatusPill.textContent = currentStatus.label;
+        dom.sidebarStatusPill.className = `px-2 py-0.5 rounded font-mono uppercase text-[10px] font-semibold ${currentStatus.cls}`;
+
+        // Aviso contextual cuando status sea partial o error (o existan errores)
+        dom.statusErrorsList.innerHTML = '';
+        dom.statusErrorsList.classList.add('hidden');
+
+        if (status === 'partial') {
+          dom.statusAlertBox.className = 'rounded-xl border p-4 shadow-sm bg-amber-50/90 dark:bg-amber-950/30 border-amber-300 dark:border-amber-800/80 text-amber-950 dark:text-amber-200';
+          dom.statusAlertIcon.innerHTML = '<svg class="w-5 h-5 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>';
+          dom.statusAlertTitle.textContent = `Recopilación Parcial (${sources_ok} de ${sources_total} fuentes respondieron correctamente)`;
+          dom.statusAlertDesc.textContent = 'Algunas fuentes RSS presentaron intermitencias durante la última ejecución. Se muestran las noticias obtenidas de las fuentes disponibles.';
+          renderErrorsList(errors);
+          dom.statusAlertBox.classList.remove('hidden');
+        } else if (status === 'error') {
+          dom.statusAlertBox.className = 'rounded-xl border p-4 shadow-sm bg-rose-50/90 dark:bg-rose-950/30 border-rose-300 dark:border-rose-800/80 text-rose-950 dark:text-rose-200';
+          dom.statusAlertIcon.innerHTML = '<svg class="w-5 h-5 text-rose-600 dark:text-rose-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/></svg>';
+          dom.statusAlertTitle.textContent = 'Error en la Recopilación de Noticias';
+          dom.statusAlertDesc.textContent = 'Se detectaron incidencias al procesar las fuentes o leer el archivo de datos.';
+          renderErrorsList(errors);
+          dom.statusAlertBox.classList.remove('hidden');
+        } else {
+          dom.statusAlertBox.classList.add('hidden');
+        }
+      }
+
+      /**
+       * Renderiza lista de errores de forma segura con textContent
+       */
+      function renderErrorsList(errors) {
+        if (!Array.isArray(errors) || errors.length === 0) return;
+        dom.statusErrorsList.classList.remove('hidden');
+        errors.forEach(errText => {
+          const li = document.createElement('li');
+          li.textContent = '• ' + String(errText);
+          dom.statusErrorsList.appendChild(li);
+        });
+      }
+
+      /**
+       * Actualiza las tarjetas KPI y contadores del menú lateral
+       */
+      function renderKPIs() {
+        const { articles, new_articles, sources_ok, sources_total } = state.rawPayload;
+        const total = articles.length;
+
+        dom.kpiTotalArticles.textContent = total.toLocaleString('es-MX');
+        dom.kpiNewArticles.textContent = new_articles.toLocaleString('es-MX');
+        dom.kpiSourcesRatio.textContent = `${sources_ok} / ${sources_total}`;
+
+        const pct = sources_total > 0 ? Math.round((sources_ok / sources_total) * 100) : 0;
+        dom.kpiSourcesPct.textContent = `${pct}%`;
+
+        // Fuentes únicas presentes en los artículos recopilados
+        const uniqueSourcesSet = new Set(
+          articles.map(a => (a.source || '').trim()).filter(Boolean)
+        );
+        dom.kpiUniqueSources.textContent = uniqueSourcesSet.size.toLocaleString('es-MX');
+
+        // Badges del sidebar por categoría
+        const counts = {
+          ALL: total,
+          'México': 0,
+          'Estados Unidos': 0,
+          'Mercados': 0,
+          'Política': 0
+        };
+
+        articles.forEach(art => {
+          const cat = (art.category || '').trim();
+          if (Object.prototype.hasOwnProperty.call(counts, cat)) {
+            counts[cat]++;
+          }
+        });
+
+        Object.keys(counts).forEach(key => {
+          const badgeEl = document.getElementById(`badge-${key}`);
+          if (badgeEl) {
+            badgeEl.textContent = counts[key];
+          }
+        });
+      }
+
+      /**
+       * Genera las gráficas SVG (Donut) y HTML/CSS (Barras) con datos reales
+       */
+      function renderAnalytics() {
+        const articles = state.rawPayload.articles;
+        const total = articles.length;
+
+        dom.donutCenterCount.textContent = total;
+        dom.donutSegments.innerHTML = '';
+        dom.categoryBarsContainer.innerHTML = '';
+        dom.sourcesChartContainer.innerHTML = '';
+
+        // 1. Conteo por categorías principales
+        const mainCategories = ['México', 'Estados Unidos', 'Mercados', 'Política'];
+        const catCounts = { 'México': 0, 'Estados Unidos': 0, 'Mercados': 0, 'Política': 0, 'Otras': 0 };
+
+        articles.forEach(art => {
+          const c = (art.category || '').trim();
+          if (mainCategories.includes(c)) {
+            catCounts[c]++;
+          } else {
+            catCounts['Otras']++;
+          }
+        });
+
+        // Dibujar segmentos SVG Donut
+        const radius = 46;
+        const circumference = 2 * Math.PI * radius;
+        let cumulativePercent = 0;
+
+        const displayCats = catCounts['Otras'] > 0
+          ? [...mainCategories, 'Otras']
+          : mainCategories;
+
+        displayCats.forEach(cat => {
+          const count = catCounts[cat];
+          const pct = total > 0 ? (count / total) : 0;
+          const meta = CATEGORY_META[cat] || CATEGORY_META['Otras'];
+
+          if (pct > 0) {
+            const strokeDasharray = `${pct * circumference} ${circumference}`;
+            const strokeDashoffset = -cumulativePercent * circumference;
+
+            const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            circle.setAttribute('cx', '60');
+            circle.setAttribute('cy', '60');
+            circle.setAttribute('r', String(radius));
+            circle.setAttribute('fill', 'transparent');
+            circle.setAttribute('stroke', meta.color);
+            circle.setAttribute('stroke-width', '14');
+            circle.setAttribute('stroke-dasharray', strokeDasharray);
+            circle.setAttribute('stroke-dashoffset', String(strokeDashoffset));
+            dom.donutSegments.appendChild(circle);
+
+            cumulativePercent += pct;
+          }
+
+          // Fila de progreso HTML/CSS
+          const pctRounded = total > 0 ? Math.round(pct * 100) : 0;
+          const row = document.createElement('div');
+          row.className = 'space-y-1';
+
+          const topLine = document.createElement('div');
+          topLine.className = 'flex items-center justify-between text-xs';
+
+          const labelWrap = document.createElement('span');
+          labelWrap.className = 'flex items-center gap-2 font-medium text-slate-700 dark:text-slate-200';
+          const dot = document.createElement('span');
+          dot.className = 'w-2.5 h-2.5 rounded-full shrink-0';
+          dot.style.backgroundColor = meta.color;
+          const labelTxt = document.createElement('span');
+          labelTxt.textContent = cat;
+          labelWrap.appendChild(dot);
+          labelWrap.appendChild(labelTxt);
+
+          const valTxt = document.createElement('span');
+          valTxt.className = 'font-mono-num text-slate-500 dark:text-slate-400';
+          valTxt.textContent = `${count} (${pctRounded}%)`;
+
+          topLine.appendChild(labelWrap);
+          topLine.appendChild(valTxt);
+
+          const barBg = document.createElement('div');
+          barBg.className = 'w-full h-1.5 bg-slate-100 dark:bg-navy-800 rounded-full overflow-hidden';
+          const barFill = document.createElement('div');
+          barFill.className = 'h-full rounded-full transition-all duration-500';
+          barFill.style.width = `${pctRounded}%`;
+          barFill.style.backgroundColor = meta.color;
+          barBg.appendChild(barFill);
+
+          row.appendChild(topLine);
+          row.appendChild(barBg);
+          dom.categoryBarsContainer.appendChild(row);
+        });
+
+        // 2. Gráfica Top 5 Fuentes por volumen
+        if (total === 0) {
+          const emptyMsg = document.createElement('p');
+          emptyMsg.className = 'text-xs text-slate-400 dark:text-slate-500 py-6 text-center';
+          emptyMsg.textContent = 'Sin datos de fuentes disponibles todavía.';
+          dom.sourcesChartContainer.appendChild(emptyMsg);
+          return;
+        }
+
+        const sourceMap = {};
+        articles.forEach(art => {
+          const src = (art.source || 'Fuente desconocida').trim();
+          sourceMap[src] = (sourceMap[src] || 0) + 1;
+        });
+
+        const sortedSources = Object.entries(sourceMap)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 5);
+
+        const maxCount = sortedSources[0][1];
+
+        sortedSources.forEach(([sourceName, count]) => {
+          const relPct = Math.round((count / maxCount) * 100);
+          const item = document.createElement('div');
+          item.className = 'space-y-1';
+
+          const header = document.createElement('div');
+          header.className = 'flex items-center justify-between text-xs gap-2';
+
+          const nameSpan = document.createElement('span');
+          nameSpan.className = 'font-medium text-slate-700 dark:text-slate-200 truncate';
+          nameSpan.textContent = sourceName; // Seguro con textContent
+
+          const countSpan = document.createElement('span');
+          countSpan.className = 'font-mono-num font-semibold text-teal-600 dark:text-teal-400 shrink-0';
+          countSpan.textContent = `${count} art.`;
+
+          header.appendChild(nameSpan);
+          header.appendChild(countSpan);
+
+          const track = document.createElement('div');
+          track.className = 'w-full h-2 bg-slate-100 dark:bg-navy-800 rounded-full overflow-hidden';
+          const fill = document.createElement('div');
+          fill.className = 'h-full bg-gradient-to-r from-navy-800 to-teal-500 dark:from-teal-600 dark:to-teal-400 rounded-full transition-all duration-500';
+          fill.style.width = `${relPct}%`;
+          track.appendChild(fill);
+
+          item.appendChild(header);
+          item.appendChild(track);
+          dom.sourcesChartContainer.appendChild(item);
+        });
+      }
+
+      /**
+       * Llena dinámicamente el selector de fuentes reales
+       */
+      function populateSourceDropdown() {
+        const currentSelected = state.filters.source;
+        const sources = Array.from(
+          new Set(state.rawPayload.articles.map(a => (a.source || '').trim()).filter(Boolean))
+        ).sort((a, b) => a.localeCompare(b, 'es'));
+
+        dom.filterSource.innerHTML = '';
+        const defaultOpt = document.createElement('option');
+        defaultOpt.value = 'ALL';
+        defaultOpt.textContent = 'Todas las fuentes';
+        dom.filterSource.appendChild(defaultOpt);
+
+        sources.forEach(src => {
+          const opt = document.createElement('option');
+          opt.value = src;
+          opt.textContent = src; // Seguro con textContent
+          dom.filterSource.appendChild(opt);
+        });
+
+        if (sources.includes(currentSelected)) {
+          dom.filterSource.value = currentSelected;
+        } else {
+          state.filters.source = 'ALL';
+          dom.filterSource.value = 'ALL';
+        }
+      }
+
+      /**
+       * Sincroniza la UI del menú lateral y el select de categoría
+       */
+      function syncCategorySelection(category) {
+        state.filters.category = category;
+        dom.filterCategory.value = category;
+
+        dom.navItems.forEach(btn => {
+          const btnCat = btn.getAttribute('data-category');
+          if (btnCat === category) {
+            btn.className = 'nav-item w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg bg-teal-500/15 text-teal-400 border border-teal-500/30 transition-colors';
+          } else {
+            btn.className = 'nav-item w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg text-slate-300 hover:bg-navy-800 hover:text-white border border-transparent transition-colors';
+          }
+        });
+
+        dom.feedHeading.textContent = category === 'ALL'
+          ? 'Titulares Recopilados'
+          : `Sección: ${category}`;
+      }
+
+      /**
+       * Aplica filtros de categoría, fuente, fecha y texto de búsqueda
+       */
+      function applyFilters() {
+        const { category, source, date, search } = state.filters;
+        const query = search.trim().toLowerCase();
+
+        state.filteredArticles = state.rawPayload.articles.filter(article => {
+          // Filtro categoría
+          if (category !== 'ALL') {
+            const artCat = (article.category || '').trim();
+            if (artCat !== category) return false;
+          }
+
+          // Filtro fuente
+          if (source !== 'ALL') {
+            const artSrc = (article.source || '').trim();
+            if (artSrc !== source) return false;
+          }
+
+          // Filtro fecha (compara fecha local de published_at o collected_at)
+          if (date) {
+            const artDateKey = getLocalDateKey(article.published_at || article.collected_at);
+            if (artDateKey !== date) return false;
+          }
+
+          // Búsqueda por título o fuente
+          if (query) {
+            const titleText = (article.title || '').toLowerCase();
+            const sourceText = (article.source || '').toLowerCase();
+            if (!titleText.includes(query) && !sourceText.includes(query)) return false;
+          }
+
+          return true;
+        });
+
+        renderArticlesFeed();
+      }
+
+      /**
+       * Renderiza las tarjetas de titulares usando exclusivamente DOM + textContent
+       */
+      function renderArticlesFeed() {
+        const totalInFile = state.rawPayload.articles.length;
+        const visibleCount = state.filteredArticles.length;
+
+        dom.resultsCounterBadge.textContent = visibleCount.toLocaleString('es-MX');
+        dom.kpiFilteredSub.textContent = `${visibleCount} visibles`;
+        dom.btnExportCsv.disabled = visibleCount === 0;
+
+        dom.articlesGrid.innerHTML = '';
+
+        // Caso 1: El archivo noticias.json no tiene noticias aún
+        if (totalInFile === 0) {
+          dom.emptyStateTitle.textContent = 'Aún no han sido recopiladas las noticias';
+          dom.emptyStateDesc.textContent = 'El archivo noticias.json se encuentra vacío actualmente. Sigue las instrucciones para ejecutar la recopilación automática.';
+          dom.emptyStateInstructions.classList.remove('hidden');
+          dom.btnEmptyReset.classList.add('hidden');
+          dom.emptyStateContainer.classList.remove('hidden');
+          return;
+        }
+
+        // Caso 2: Hay noticias en el archivo, pero los filtros no arrojan coincidencias
+        if (visibleCount === 0) {
+          dom.emptyStateTitle.textContent = 'No se encontraron noticias con los filtros actuales';
+          dom.emptyStateDesc.textContent = 'Intenta ajustar los términos de búsqueda, la fecha seleccionada o cambiar de sección temática.';
+          dom.emptyStateInstructions.classList.add('hidden');
+          dom.btnEmptyReset.classList.remove('hidden');
+          dom.emptyStateContainer.classList.remove('hidden');
+          return;
+        }
+
+        // Caso 3: Renderizar tarjetas de noticias
+        dom.emptyStateContainer.classList.add('hidden');
+
+        const fragment = document.createDocumentFragment();
+
+        state.filteredArticles.forEach(article => {
+          const card = document.createElement('article');
+          card.className = 'group bg-white dark:bg-navy-900 rounded-xl border border-slate-200 dark:border-navy-800 hover:border-teal-500/60 dark:hover:border-teal-500/50 p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between';
+
+          // Cabecera de tarjeta: Categoría + Fecha
+          const topRow = document.createElement('div');
+          topRow.className = 'flex items-center justify-between gap-2 mb-3';
+
+          const catName = (article.category || 'General').trim();
+          const catStyle = CATEGORY_META[catName] || CATEGORY_META['Otras'];
+
+          const catBadge = document.createElement('span');
+          catBadge.className = `inline-flex items-center px-2.5 py-0.5 rounded-md text-[11px] font-semibold border ${catStyle.badgeClass}`;
+          catBadge.textContent = catName; // textContent seguro
+
+          const timeEl = document.createElement('time');
+          timeEl.className = 'text-[11px] font-mono-num text-slate-500 dark:text-slate-400 shrink-0';
+          const rawDate = article.published_at || article.collected_at;
+          if (rawDate) timeEl.setAttribute('datetime', rawDate);
+          timeEl.textContent = article.published_at
+            ? formatDateTime(article.published_at)
+            : (article.collected_at ? `Recop: ${formatDateTime(article.collected_at)}` : 'Sin fecha');
+
+          topRow.appendChild(catBadge);
+          topRow.appendChild(timeEl);
+
+          // Cuerpo: Titular externo (OBLIGATORIO textContent)
+          const titleEl = document.createElement('h3');
+          titleEl.className = 'text-base font-semibold text-navy-900 dark:text-slate-100 leading-snug mb-4 group-hover:text-teal-700 dark:group-hover:text-teal-300 transition-colors';
+          titleEl.textContent = article.title || 'Titular sin descripción';
+
+          // Pie de tarjeta: Fuente + Enlace original
+          const footerRow = document.createElement('div');
+          footerRow.className = 'pt-3 border-t border-slate-100 dark:border-navy-800 flex items-center justify-between gap-3 mt-auto';
+
+          const sourceWrap = document.createElement('div');
+          sourceWrap.className = 'flex items-center gap-1.5 min-w-0';
+
+          const sourceDot = document.createElement('span');
+          sourceDot.className = 'w-1.5 h-1.5 rounded-full bg-teal-500 shrink-0';
+
+          const sourceSpan = document.createElement('span');
+          sourceSpan.className = 'text-xs font-medium text-slate-600 dark:text-slate-300 truncate';
+          sourceSpan.textContent = article.source || 'Fuente no especificada'; // textContent seguro
+
+          sourceWrap.appendChild(sourceDot);
+          sourceWrap.appendChild(sourceSpan);
+
+          const safeHref = getSafeUrl(article.url);
+          const linkEl = document.createElement('a');
+          linkEl.href = safeHref;
+          linkEl.target = '_blank';
+          linkEl.rel = 'noopener noreferrer';
+          linkEl.className = 'inline-flex items-center gap-1 text-xs font-semibold text-teal-700 dark:text-teal-400 hover:text-teal-600 dark:hover:text-teal-300 shrink-0 px-2.5 py-1.5 rounded-lg bg-teal-500/10 hover:bg-teal-500/20 transition-colors';
+          
+          const linkLabel = document.createElement('span');
+          linkLabel.textContent = 'Leer nota';
+          linkEl.appendChild(linkLabel);
+
+          // Icono SVG de enlace externo
+          const extIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          extIcon.setAttribute('class', 'w-3.5 h-3.5');
+          extIcon.setAttribute('fill', 'none');
+          extIcon.setAttribute('stroke', 'currentColor');
+          extIcon.setAttribute('stroke-width', '2');
+          extIcon.setAttribute('viewBox', '0 0 24 24');
+          const extPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          extPath.setAttribute('stroke-linecap', 'round');
+          extPath.setAttribute('stroke-linejoin', 'round');
+          extPath.setAttribute('d', 'M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25');
+          extIcon.appendChild(extPath);
+          linkEl.appendChild(extIcon);
+
+          if (safeHref === '#') {
+            linkEl.classList.add('opacity-50', 'pointer-events-none');
+            linkLabel.textContent = 'Sin enlace';
+          }
+
+          footerRow.appendChild(sourceWrap);
+          footerRow.appendChild(linkEl);
+
+          card.appendChild(topRow);
+          card.appendChild(titleEl);
+          card.appendChild(footerRow);
+
+          fragment.appendChild(card);
+        });
+
+        dom.articlesGrid.appendChild(fragment);
+      }
+
+      /**
+       * Exportación real a archivo CSV de los artículos filtrados
+       */
+      function exportFilteredToCSV() {
+        if (state.filteredArticles.length === 0) {
+          showToast('No hay noticias visibles para exportar.', 'error');
+          return;
+        }
+
+        const headers = ['id', 'category', 'source', 'title', 'published_at', 'collected_at', 'url'];
+        const escapeCsvCell = (value) => {
+          if (value === null || value === undefined) return '""';
+          const str = String(value).replace(/"/g, '""');
+          return `"${str}"`;
+        };
+
+        const rows = [
+          headers.join(','),
+          ...state.filteredArticles.map(art =>
+            headers.map(field => escapeCsvCell(art[field])).join(',')
+          )
+        ];
+
+        const csvContent = '\uFEFF' + rows.join('\n'); // BOM UTF-8 para acentos en Excel
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+
+        const timestamp = new Date().toISOString().slice(0, 10);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `dashboard_noticias_${timestamp}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        showToast(`Exportados ${state.filteredArticles.length} registros a CSV.`, 'success');
+      }
+
+      /**
+       * Restablecer todos los filtros activos
+       */
+      function resetAllFilters() {
+        state.filters = {
+          category: 'ALL',
+          source: 'ALL',
+          date: '',
+          search: ''
+        };
+        dom.filterSearch.value = '';
+        dom.filterSource.value = 'ALL';
+        dom.filterDate.value = '';
+        syncCategorySelection('ALL');
+        applyFilters();
+      }
+
+      /**
+       * Registro de Eventos de Interfaz
+       */
+      function bindEvents() {
+        // Tema claro/oscuro
+        dom.btnThemeToggle.addEventListener('click', toggleTheme);
+
+        // Menú móvil
+        dom.openSidebarBtn.addEventListener('click', openSidebar);
+        dom.closeSidebarBtn.addEventListener('click', closeSidebar);
+        dom.sidebarOverlay.addEventListener('click', closeSidebar);
+
+        // Navegación lateral por categoría
+        dom.navItems.forEach(btn => {
+          btn.addEventListener('click', () => {
+            const cat = btn.getAttribute('data-category') || 'ALL';
+            syncCategorySelection(cat);
+            applyFilters();
+            closeSidebar();
+          });
+        });
+
+        // Botón Refresh (solo relee ./noticias.json)
+        dom.btnRefresh.addEventListener('click', () => fetchNewsData(true));
+
+        // Exportación CSV
+        dom.btnExportCsv.addEventListener('click', exportFilteredToCSV);
+
+        // Controles de filtro
+        dom.filterSearch.addEventListener('input', (e) => {
+          state.filters.search = e.target.value;
+          applyFilters();
+        });
+
+        dom.filterCategory.addEventListener('change', (e) => {
+          syncCategorySelection(e.target.value);
+          applyFilters();
+        });
+
+        dom.filterSource.addEventListener('change', (e) => {
+          state.filters.source = e.target.value;
+          applyFilters();
+        });
+
+        dom.filterDate.addEventListener('change', (e) => {
+          state.filters.date = e.target.value;
+          applyFilters();
+        });
+
+        dom.btnClearFilters.addEventListener('click', resetAllFilters);
+        dom.btnEmptyReset.addEventListener('click', resetAllFilters);
+
+        // Cerrar toast
+        dom.toastClose.addEventListener('click', () => {
+          dom.toastBanner.classList.add('hidden');
+        });
+      }
+
+      // Arranque inicial de la aplicación
+      initTheme();
+      bindEvents();
+      fetchNewsData(false);
+    })();
+  </script>
+</body>
+</html>
